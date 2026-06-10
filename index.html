@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HR Dashboard 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;background:#F1F5F9;color:#1E293B}
+.page{display:none}.page.on{display:block}
+nav{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.1);position:sticky;top:0;z-index:99;display:flex;align-items:center;overflow-x:auto;padding:0 16px;gap:0}
+.logo{font-size:14px;font-weight:700;padding:12px 14px 12px 0;border-right:1px solid #E2E8F0;white-space:nowrap;margin-right:4px;flex-shrink:0}
+.tb{padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:#64748B;border-bottom:3px solid transparent;white-space:nowrap}
+.tb.on{color:#2563EB;border-bottom-color:#2563EB}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0;padding-left:12px}
+.up{font-size:11px;color:#94A3B8;white-space:nowrap}
+.rfbtn{background:#EFF6FF;border:1px solid #BFDBFE;color:#2563EB;padding:5px 12px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;white-space:nowrap;font-family:inherit}
+.rfbtn:hover{background:#DBEAFE}.rfbtn:disabled{opacity:.5;cursor:default}
+.w{max-width:1300px;margin:0 auto;padding:18px}
+.kr{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:#fff;border-radius:12px;padding:13px 15px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.kn{font-size:1.75rem;font-weight:700;line-height:1.1;margin-top:4px}
+.ks{font-size:11px;color:#94A3B8}
+.cc{background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.tw{overflow:hidden;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);background:#fff}
+.th{padding:11px 16px;border-bottom:1px solid #E2E8F0;background:#F8FAFC}
+.tr2{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#F8FAFC;color:#64748B;font-size:11px;font-weight:700;text-transform:uppercase;padding:9px 11px;border-bottom:1.5px solid #E2E8F0;text-align:left;white-space:nowrap;position:sticky;top:0;z-index:2}
+td{padding:8px 11px;border-bottom:1px solid #F1F5F9;vertical-align:middle}
+tr:hover td{background:#F8FAFC}
+.bx{display:inline-block;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.fa{background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;padding:8px 12px;font-size:12px;color:#9A3412;display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.fa.h{display:none}
+input.sb{border:1px solid #E2E8F0;border-radius:8px;padding:7px 11px;font-size:13px;outline:none;max-width:260px;width:100%;font-family:inherit}
+select.fs{border:1px solid #E2E8F0;border-radius:8px;padding:6px 9px;font-size:12px;background:#fff;cursor:pointer;outline:none;font-family:inherit}
+.fr{display:flex;flex-wrap:wrap;gap:8px}
+.scr{overflow-x:auto;max-height:460px;overflow-y:auto}
+canvas{cursor:pointer}
+.hb{border-radius:12px;padding:13px 16px;color:#fff;margin-bottom:14px}
+/* วันที่ว่างให้แสดง dash */
+.nd{color:#CBD5E1;font-style:italic}
+/* Loading overlay */
+#ov{position:fixed;inset:0;background:rgba(248,250,252,.95);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.spin{width:40px;height:40px;border:4px solid #E2E8F0;border-top-color:#2563EB;border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+#ov-msg{font-size:15px;color:#334155;font-weight:600}
+#ov-sub{font-size:12px;color:#94A3B8}
+.err{background:#FEF2F2;border:1px solid #FCA5A5;border-radius:10px;padding:16px 20px;max-width:440px;text-align:center;display:none}
+.err h3{color:#B91C1C;margin-bottom:6px;font-size:15px}
+.err p{font-size:12px;color:#7F1D1D;line-height:1.6;white-space:pre-line}
+.errbtn{margin-top:10px;background:#2563EB;color:#fff;border:none;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit}
+@media(max-width:700px){.g2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div id="ov">
+  <div class="spin"></div>
+  <div id="ov-msg">กำลังโหลดข้อมูลจาก Google Sheets…</div>
+  <div id="ov-sub">โปรดรอสักครู่</div>
+  <div class="err" id="errbox">
+    <h3>⚠️ โหลดข้อมูลไม่สำเร็จ</h3>
+    <p id="errmsg"></p>
+    <button class="errbtn" onclick="loadData()">ลองใหม่</button>
+  </div>
+</div>
+
+<nav>
+  <div class="logo">🏢 HR Dashboard 2026</div>
+  <button class="tb on" onclick="SP(0)">👥 พนักงานปัจจุบัน</button>
+  <button class="tb" onclick="SP(1)">📋 สรรหา 2026</button>
+  <button class="tb" onclick="SP(2)">🚪 ลาออก 2026</button>
+  <button class="tb" onclick="SP(3)">🔄 โยกย้าย 2026</button>
+  <div class="nav-r">
+    <span class="up" id="ts">—</span>
+    <button class="rfbtn" id="rfbtn" onclick="loadData()">🔄 รีเฟรช</button>
+  </div>
+</nav>
+
+<!-- PAGE 1: พนักงานปัจจุบัน -->
+<div class="page on" id="pg0"><div class="w">
+  <div class="kr">
+    <div class="kpi" style="border-left:4px solid #2563EB"><div style="font-size:12px;color:#64748B;font-weight:600">พนักงานทั้งหมด</div><div class="kn" id="k-an">—</div><div class="ks">คน</div></div>
+    <div class="kpi" style="border-left:4px solid #2563EB;cursor:pointer" onclick="AF('gender','M','ชาย')"><div style="font-size:12px;color:#64748B;font-weight:600">ชาย</div><div class="kn" style="color:#2563EB" id="k-am">—</div><div class="ks">คลิกเพื่อกรอง</div></div>
+    <div class="kpi" style="border-left:4px solid #EC4899;cursor:pointer" onclick="AF('gender','F','หญิง')"><div style="font-size:12px;color:#64748B;font-weight:600">หญิง</div><div class="kn" style="color:#EC4899" id="k-af">—</div><div class="ks">คลิกเพื่อกรอง</div></div>
+
+  </div>
+  <!-- Turnover Rate รายเดือน -->
+  <div class="cc" style="margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+      <div>
+        <div style="font-size:14px;font-weight:700">📉 Turnover Rate รายเดือน 2026</div>
+        <div style="font-size:11px;color:#94A3B8">= ลาออกรายเดือน ÷ พนักงานเฉลี่ย (ต้น+ปลายเดือน÷2) × 100</div>
+      </div>
+      <div style="display:flex;gap:16px">
+        <div style="text-align:center"><div style="font-size:11px;color:#64748B;font-weight:600">YTD เฉลี่ย</div><div style="font-size:1.4rem;font-weight:700;color:#EF4444" id="k-tor">—</div></div>
+        <div style="text-align:center"><div style="font-size:11px;color:#64748B;font-weight:600">สูงสุด</div><div style="font-size:1.4rem;font-weight:700;color:#F97316" id="k-tor-max">—</div></div>
+      </div>
+    </div>
+    <div style="height:230px"><canvas id="a-tor"></canvas></div>
+    <div style="margin-top:10px;border-top:1px solid #F1F5F9;padding-top:8px;overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:560px">
+        <thead><tr style="background:#F8FAFC">
+          <th style="padding:6px 10px;text-align:left;color:#64748B;border-bottom:1px solid #E2E8F0">เดือน</th>
+          <th style="padding:6px 10px;text-align:center;color:#64748B;border-bottom:1px solid #E2E8F0">ต้นเดือน</th>
+          <th style="padding:6px 10px;text-align:center;color:#64748B;border-bottom:1px solid #E2E8F0">รับเข้า</th>
+          <th style="padding:6px 10px;text-align:center;color:#EF4444;border-bottom:1px solid #E2E8F0">ลาออก</th>
+          <th style="padding:6px 10px;text-align:center;color:#64748B;border-bottom:1px solid #E2E8F0">ปลายเดือน</th>
+          <th style="padding:6px 10px;text-align:center;color:#64748B;border-bottom:1px solid #E2E8F0">เฉลี่ย</th>
+          <th style="padding:6px 10px;text-align:center;color:#7C3AED;border-bottom:1px solid #E2E8F0">Turnover %</th>
+        </tr></thead>
+        <tbody id="a-tor-tb"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="cc"><div style="font-size:14px;font-weight:700;margin-bottom:2px">ช่องทางสรรหา</div><div style="font-size:11px;color:#94A3B8;margin-bottom:10px">👆 คลิกเพื่อกรอง</div><div style="height:220px"><canvas id="a-ch"></canvas></div></div>
+    <div class="cc"><div style="font-size:14px;font-weight:700;margin-bottom:2px">จำนวนพนักงานรายแผนก</div><div style="font-size:11px;color:#94A3B8;margin-bottom:10px">👆 คลิกแท่งเพื่อกรอง</div><div style="height:520px"><canvas id="a-dp"></canvas></div></div>
+  </div>
+  <div class="tw"><div class="th">
+    <div class="tr2">
+      <div><b style="font-size:14px">ข้อมูลพนักงานปัจจุบัน</b><div style="font-size:11px;color:#64748B">แสดง: <span id="a-dc" style="color:#2563EB;font-weight:600">—</span></div></div>
+      <input class="sb" id="a-q" placeholder="ค้นหาชื่อ แผนก รหัส..." oninput="AR()">
+    </div>
+    <div id="a-fa" class="fa h">🔍 <strong id="a-fl"></strong><button onclick="AC()" style="background:#fff;border:1px solid #FED7AA;color:#9A3412;padding:2px 8px;border-radius:6px;cursor:pointer;font-size:11px;margin-left:auto">✕ ล้าง</button></div>
+    <div class="fr">
+      <select class="fs" id="a-f1" onchange="AR()"><option value="">สังกัด: ทั้งหมด</option></select>
+      <select class="fs" id="a-f2" onchange="AR()"><option value="">แผนก: ทั้งหมด</option></select>
+      <select class="fs" id="a-f3" onchange="AR()"><option value="">เพศ: ทั้งหมด</option><option value="M">ชาย</option><option value="F">หญิง</option></select>
+
+    </div>
+  </div>
+  <div class="scr"><table><thead><tr><th>#</th><th>รหัส</th><th>สังกัด</th><th>แผนก</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>Lv</th><th>เพศ</th><th>วันเริ่มงาน</th></tr></thead><tbody id="a-tb"></tbody></table></div></div>
+</div></div>
+
+<!-- PAGE 2: สรรหา -->
+<div class="page" id="pg1"><div class="w">
+  <div class="hb" style="background:#1D4ED8"><div style="font-size:16px;font-weight:700">Dashboard สรุปผลงานการสรรหา ปี 2026</div><div style="font-size:12px;opacity:.8">มกราคม — ธันวาคม 2569</div></div>
+  <div class="kr">
+    <div class="kpi" style="border-left:4px solid #2563EB"><div style="font-size:12px;color:#64748B;font-weight:600">รับเข้าทั้งหมด</div><div class="kn" style="color:#2563EB" id="k-hn">—</div><div class="ks">คน</div></div>
+    <div class="kpi" style="border-left:4px solid #10B981;cursor:pointer" onclick="HF('status','ทำงาน','ยังทำงาน')"><div style="font-size:12px;color:#64748B;font-weight:600">ยังทำงาน</div><div class="kn" style="color:#10B981" id="k-hs">—</div><div class="ks">คลิกกรอง</div></div>
+    <div class="kpi" style="border-left:4px solid #EF4444;cursor:pointer" onclick="HF('status','ลาออก','ลาออกแล้ว')"><div style="font-size:12px;color:#64748B;font-weight:600">ลาออกแล้ว</div><div class="kn" style="color:#EF4444" id="k-hl">—</div><div class="ks">คลิกกรอง</div></div>
+    <div class="kpi" style="border-left:4px solid #8B5CF6"><div style="font-size:12px;color:#64748B;font-weight:600">Retention</div><div class="kn" style="color:#8B5CF6" id="k-hr">—</div><div class="ks">&nbsp;</div></div>
+    <div class="kpi" style="border-left:4px solid #2563EB"><div style="font-size:12px;color:#64748B;font-weight:600">ชาย</div><div class="kn" style="color:#2563EB" id="k-hm">—</div><div class="ks">คน</div></div>
+    <div class="kpi" style="border-left:4px solid #EC4899"><div style="font-size:12px;color:#64748B;font-weight:600">หญิง</div><div class="kn" style="color:#EC4899" id="k-hf">—</div><div class="ks">คน</div></div>
+  </div>
+  <div class="cc" style="margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+      <div>
+        <div style="font-size:14px;font-weight:700">📊 รับเข้าจริง รายเดือน 2026</div>
+        <div style="font-size:11px;color:#94A3B8">จำนวนพนักงานที่เริ่มงานในแต่ละเดือน</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:11px;color:#64748B;font-weight:600">รับเข้าทั้งหมด</div>
+        <div style="font-size:1.4rem;font-weight:700;color:#10B981" id="k-hr2">—</div>
+      </div>
+    </div>
+    <div style="height:220px"><canvas id="h-real"></canvas></div>
+  </div>
+  <div class="g2">
+    <div class="cc"><div style="font-size:14px;font-weight:700;margin-bottom:2px">รับเข้า vs ลาออก รายเดือน</div><div style="font-size:11px;color:#94A3B8;margin-bottom:10px">👆 คลิกแท่งเพื่อกรอง</div><div style="height:220px"><canvas id="h-mn"></canvas></div></div>
+    <div class="cc"><div style="font-size:14px;font-weight:700;margin-bottom:2px">สรรหารายแผนก</div><div style="font-size:11px;color:#94A3B8;margin-bottom:10px">👆 คลิกแท่งเพื่อกรอง</div><div style="height:220px"><canvas id="h-dp"></canvas></div></div>
+  </div>
+  <div class="g2">
+    <div class="cc"><div style="font-size:14px;font-weight:700;margin-bottom:2px">ช่องทางสรรหา</div><div style="font-size:11px;color:#94A3B8;margin-bottom:10px">👆 คลิกเพื่อกรอง</div><div style="height:200px"><canvas id="h-ch"></canvas></div></div>
+    <div class="cc"><div style="font-size:14px;font-weight:700;margin-bottom:2px">สังกัด</div><div style="font-size:11px;color:#94A3B8;margin-bottom:10px">👆 คลิกเพื่อกรอง</div><div style="height:200px"><canvas id="h-af"></canvas></div></div>
+  </div>
+  <div class="tw"><div class="th">
+    <div class="tr2">
+      <div><b style="font-size:14px">รายชื่อพนักงานใหม่</b><div style="font-size:11px;color:#64748B">แสดง: <span id="h-dc" style="color:#2563EB;font-weight:600">—</span></div></div>
+      <input class="sb" id="h-q" placeholder="ค้นหาชื่อ แผนก..." oninput="HR()">
+    </div>
+    <div id="h-fa" class="fa h">🔍 <strong id="h-fl"></strong><button onclick="HC()" style="background:#fff;border:1px solid #FED7AA;color:#9A3412;padding:2px 8px;border-radius:6px;cursor:pointer;font-size:11px;margin-left:auto">✕ ล้าง</button></div>
+    <div class="fr">
+      <select class="fs" id="h-f1" onchange="HR()"><option value="">สังกัด: ทั้งหมด</option></select>
+      <select class="fs" id="h-f2" onchange="HR()"><option value="">แผนก: ทั้งหมด</option></select>
+      <select class="fs" id="h-f3" onchange="HR()"><option value="">เดือน: ทั้งหมด</option></select>
+      <select class="fs" id="h-f4" onchange="HR()"><option value="">สถานะ: ทั้งหมด</option><option value="ทำงาน">ทำงาน</option><option value="ลาออก">ลาออก</option></select>
+    </div>
+  </div>
+  <div class="scr"><table><thead><tr><th>#</th><th>สังกัด</th><th>แผนก</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>Lv</th><th>วันเริ่มงาน</th><th>สถานะ</th><th>วันลาออก</th><th>อายุงาน</th></tr></thead><tbody id="h-tb"></tbody></table></div></div>
+</div></div>
+
+<!-- PAGE 3: ลาออก -->
+<div class="page" id="pg2"><div class="w">
+  <div class="hb" style="background:#7F1D1D"><div style="font-size:16px;font-weight:700">Dashboard สรุปการลาออก ปี 2026</div><div style="font-size:12px;opacity:.8">มกราคม — ธันวาคม 2569</div></div>
+  <div class="kr">
+    <div class="kpi" style="border-left:4px solid #EF4444"><div style="font-size:12px;color:#64748B;font-weight:600">ลาออกทั้งหมด</div><div class="kn" style="color:#EF4444" id="k-rn">—</div><div class="ks">คน</div></div>
+    <div class="kpi" style="border-left:4px solid #F59E0B;cursor:pointer" onclick="RF('np',true,'ไม่ผ่านทดลองงาน')"><div style="font-size:12px;color:#64748B;font-weight:600">ไม่ผ่านทดลองงาน</div><div class="kn" style="color:#F59E0B" id="k-rnp">—</div><div class="ks">คลิกกรอง</div></div>
+    <div class="kpi" style="border-left:4px solid #1E293B;cursor:pointer" onclick="RF('bl','BLACK LIST','Blacklist')"><div style="font-size:12px;color:#64748B;font-weight:600">Blacklist</div><div class="kn" style="color:#1E293B" id="k-rbl">—</div><div class="ks">คลิกกรอง</div></div>
+    <div class="kpi" style="border-left:4px solid #F59E0B"><div style="font-size:12px;color:#64748B;font-weight:600">สาเหตุอันดับ 1</div><div style="font-size:12px;font-weight:700;color:#B45309;margin-top:4px" id="k-rt">—</div></div>
+    <div class="kpi" style="border-left:4px solid #2563EB"><div style="font-size:12px;color:#64748B;font-weight:600">ชาย</div><div class="kn" style="color:#2563EB" id="k-rm">—</div><div class="ks">คน</div></div>
+    <div class="kpi" style="border-left:4px solid #EC4899"><div style="font-size:12px;color:#64748B;font-weight:600">หญิง</div><div class="kn" style="color:#EC4899" id="k-rf">—</div><div class="ks">คน</div></div>
+  </div>
+  <div class="g2">
+    <div class="cc">
+      <div style="font-size:14px;font-weight:700;margin-bottom:2px">ลาออก vs ไม่ผ่านทดลองงาน รายเดือน</div>
+      <div style="font-size:11px;color:#94A3B8;margin-bottom:10px">👆 คลิกแท่งเพื่อกรอง</div>
+      <div style="height:200px"><canvas id="r-mn"></canvas></div>
+      <div style="margin-top:8px;padding:6px 10px;background:#FEF3C7;border:1px solid #FDE68A;border-radius:7px;font-size:11px;color:#92400E">
+        📌 <strong>หมายเหตุ:</strong> ยอด "ลาออก" รวมพนักงานที่ไม่ผ่านทดลองงานไว้ด้วย
+      </div>
+      <div style="margin-top:10px;border-top:1px solid #F1F5F9;padding-top:8px">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:#F8FAFC">
+            <th style="padding:6px 8px;text-align:left;color:#64748B;border-bottom:1px solid #E2E8F0">เดือน</th>
+            <th style="padding:6px 8px;text-align:center;color:#EF4444;border-bottom:1px solid #E2E8F0">🔴ลาออก</th>
+            <th style="padding:6px 8px;text-align:center;color:#B45309;border-bottom:1px solid #E2E8F0">🟡ไม่ผ่าน</th>
+            <th style="padding:6px 8px;text-align:center;color:#64748B;border-bottom:1px solid #E2E8F0">%</th>
+          </tr></thead>
+          <tbody id="r-st"></tbody>
+        </table>
+        <div style="font-size:11px;color:#94A3B8;margin-top:4px">*ไม่รวมโยกย้าย/ทำสัญญาใหม่</div>
+      </div>
+    </div>
+    <div class="cc"><div style="font-size:14px;font-weight:700;margin-bottom:2px">สาเหตุการลาออก</div><div style="font-size:11px;color:#94A3B8;margin-bottom:10px">👆 คลิกแท่งเพื่อกรอง</div><div style="height:220px"><canvas id="r-rs"></canvas></div></div>
+  </div>
+  <div class="g2">
+    <div class="cc"><div style="font-size:14px;font-weight:700;margin-bottom:2px">Top 5 แผนกลาออกสูง</div><div style="font-size:11px;color:#94A3B8;margin-bottom:10px">👆 คลิกแท่งเพื่อกรอง</div><div style="height:200px"><canvas id="r-dp"></canvas></div></div>
+    <div class="cc"><div style="font-size:14px;font-weight:700;margin-bottom:2px">สัดส่วนตามสังกัด</div><div style="font-size:11px;color:#94A3B8;margin-bottom:10px">👆 คลิกเพื่อกรอง</div><div style="height:200px"><canvas id="r-af"></canvas></div></div>
+  </div>
+  <div class="cc" style="margin-bottom:12px">
+    <div style="font-size:14px;font-weight:700;margin-bottom:2px">⏱️ กราฟอายุงานของพนักงานที่ลาออก</div>
+    <div style="font-size:11px;color:#94A3B8;margin-bottom:10px">แบ่งตามช่วงอายุงาน (นับจากวันเริ่มงานถึงวันลาออก)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:center">
+      <div style="height:240px"><canvas id="r-tn"></canvas></div>
+      <div id="r-tn-legend" style="display:grid;gap:8px"></div>
+    </div>
+
+  </div>
+  <div class="tw"><div class="th">
+    <div class="tr2">
+      <div><b style="font-size:14px">รายชื่อพนักงานที่ลาออก</b><div style="font-size:11px;color:#64748B">แสดง: <span id="r-dc" style="color:#EF4444;font-weight:600">—</span></div></div>
+      <input class="sb" id="r-q" placeholder="ค้นหาชื่อ แผนก สาเหตุ..." oninput="RR()">
+    </div>
+    <div id="r-fa" class="fa h">🔍 <strong id="r-fl"></strong><button onclick="RC()" style="background:#fff;border:1px solid #FED7AA;color:#9A3412;padding:2px 8px;border-radius:6px;cursor:pointer;font-size:11px;margin-left:auto">✕ ล้าง</button></div>
+    <div class="fr">
+      <select class="fs" id="r-f1" onchange="RR()"><option value="">สังกัด: ทั้งหมด</option></select>
+      <select class="fs" id="r-f2" onchange="RR()"><option value="">แผนก: ทั้งหมด</option></select>
+      <select class="fs" id="r-f3" onchange="RR()"><option value="">เดือน: ทั้งหมด</option></select>
+      <select class="fs" id="r-f4" onchange="RR()"><option value="">ประเภท: ทั้งหมด</option></select>
+      <select class="fs" id="r-f5" onchange="RR()"><option value="">BL: ทั้งหมด</option><option value="BL">BLACK LIST</option><option value="N">ปกติ</option></select>
+    </div>
+  </div>
+  <div class="scr"><table><thead><tr><th>#</th><th>สังกัด</th><th>แผนก</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>วันเริ่มงาน</th><th>วันลาออก</th><th>อายุงาน</th><th>ประเภท</th><th>สาเหตุ</th><th>BL</th></tr></thead><tbody id="r-tb"></tbody></table></div></div>
+</div></div>
+
+<!-- PAGE 4: โยกย้าย -->
+<div class="page" id="pg3"><div class="w">
+  <div class="hb" style="background:#4C1D95"><div style="font-size:16px;font-weight:700">การโยกย้าย/ปรับตำแหน่ง ปี 2026</div></div>
+  <div id="tc"></div>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+// ══════════════════════════════════════════════════════════════
+// ▶ แก้ URL นี้ถ้า deploy Apps Script ใหม่
+// ══════════════════════════════════════════════════════════════
+var API = 'https://script.google.com/macros/s/AKfycbxbcbbn9jUhUoW20RCOuxbWwoTDVi6P7RP8rojrhPypdv_fe_k8w4H7HG9ZaJb1YtfExg/exec';
+
+var DA=[],DH=[],DR=[],DT=[];
+var CL=['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4','#EC4899','#6366F1','#84CC16','#F97316'];
+var MN=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+// ── โหลดข้อมูลผ่าน JSONP ─────────────────────────────────────
+function loadData(){
+  var btn=document.getElementById('rfbtn');
+  btn.disabled=true; btn.textContent='⏳ กำลังโหลด…';
+  document.getElementById('ov').style.display='flex';
+  document.getElementById('ov-msg').textContent='กำลังโหลดข้อมูลจาก Google Sheets…';
+  document.getElementById('ov-sub').textContent='โปรดรอสักครู่';
+  document.getElementById('errbox').style.display='none';
+  var old=document.getElementById('_jsonp');
+  if(old) old.parentNode.removeChild(old);
+  var cbName='_hr_cb_'+Date.now();
+  window[cbName]=function(data){
+    delete window[cbName];
+    clearTimeout(window._hrTimeout);
+    if(data.error){showErr('Apps Script error:\n'+data.error);return;}
+    DA=data.active||[]; DH=data.hired||[]; DR=data.res||[]; DT=data.trans||[];
+    document.getElementById('ts').textContent='📅 '+(data.updated||'');
+    document.getElementById('ov').style.display='none';
+    btn.disabled=false; btn.textContent='🔄 รีเฟรช';
+    initAll();
+  };
+  var sc=document.createElement('script');
+  sc.id='_jsonp';
+  sc.src=API+'?callback='+cbName+'&t='+Date.now();
+  sc.onerror=function(){
+    clearTimeout(window._hrTimeout);
+    showErr('ไม่สามารถเชื่อมต่อ Apps Script ได้\n\nตรวจสอบ:\n1. เปิดไฟล์นี้ใน Browser (ไม่ใช่ใน Claude)\n2. Apps Script deploy ถูกต้อง Who has access = Anyone\n3. URL ใน Dashboard ตรงกับ deploy ล่าสุด');
+  };
+  window._hrTimeout=setTimeout(function(){
+    if(window[cbName]){
+      delete window[cbName];
+      showErr('Timeout — Apps Script ไม่ตอบสนองภายใน 15 วินาที\nลองรีเฟรชใหม่อีกครั้ง');
+    }
+  },15000);
+  document.head.appendChild(sc);
+}
+
+function showErr(msg){
+  document.getElementById('ov-msg').textContent='โหลดข้อมูลไม่สำเร็จ';
+  document.getElementById('ov-sub').textContent='';
+  document.getElementById('errbox').style.display='block';
+  document.getElementById('errmsg').textContent=msg;
+  var btn=document.getElementById('rfbtn');
+  btn.disabled=false; btn.textContent='🔄 รีเฟรช';
+}
+
+function initAll(){IA();IH();IR();IT();}
+
+// ── Utils ─────────────────────────────────────────────────────
+function SP(i){
+  document.querySelectorAll('.page').forEach(function(p,j){p.classList.toggle('on',j===i)});
+  document.querySelectorAll('.tb').forEach(function(t,j){t.classList.toggle('on',j===i)});
+}
+function cB(a,k){var m={};a.forEach(function(r){var v=r[k]||'ไม่ระบุ';m[v]=(m[v]||0)+1});return m}
+function nC(c){
+  if(!c)return'ไม่ระบุ';
+  var l=c.trim().toLowerCase();
+  if(l.includes('jobthai'))return'Jobthai';
+  if(l.includes('jobtopgun'))return'Jobtopgun';
+  if(l.includes('jobbkk'))return'Jobbkk';
+  if(l.includes('facebook')||l==='fb')return'Facebook';
+  if(l.includes('พนักงาน')||l.includes('เพื่อน')||l.includes('แนะนำ'))return'พนักงานแนะนำ';
+  if(l.includes('walk')||l.includes('ป้าย'))return'Walk-in';
+  if(l.includes('line'))return'Line';
+  return c||'ไม่ระบุ';
+}
+// แสดงวันที่ — ถ้าว่างให้แสดง dash สีเทา
+function dD(v){return v?v:'<span class="nd">—</span>';}
+function dC(e){if(e&&e._c){e._c.destroy();e._c=null}}
+function pS(id,opts,pfx){
+  var s=document.getElementById(id);if(!s)return;
+  var c=s.value;
+  s.innerHTML='<option value="">'+pfx+': ทั้งหมด</option>'+
+    Array.from(new Set(opts)).filter(Boolean).sort().map(function(o){
+      return'<option value="'+o+'">'+o+'</option>';
+    }).join('');
+  if(Array.from(s.options).some(function(o){return o.value===c}))s.value=c;
+}
+function mkB(id,lb,dt,co,cb){
+  var e=document.getElementById(id);if(!e)return;dC(e);
+  e._c=new Chart(e,{type:'bar',data:{labels:lb,datasets:[{data:dt,backgroundColor:co||CL,borderRadius:4,borderWidth:0}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+  scales:{x:{grid:{display:false},ticks:{font:{size:10,family:'Sarabun'},autoSkip:false,maxRotation:35}},
+  y:{beginAtZero:true,grid:{color:'#F1F5F9'},ticks:{font:{size:10,family:'Sarabun'},stepSize:1}}},
+  onClick:cb?function(e,el){if(el[0])cb(lb[el[0].index])}:undefined}});
+}
+function mkBH(id,lb,dt,cb){
+  var e=document.getElementById(id);if(!e)return;dC(e);
+  e._c=new Chart(e,{type:'bar',data:{labels:lb,datasets:[{data:dt,backgroundColor:CL,borderRadius:4,borderWidth:0}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+  scales:{x:{beginAtZero:true,grid:{color:'#F1F5F9'},ticks:{font:{size:10,family:'Sarabun'},stepSize:1}},
+  y:{grid:{display:false},ticks:{font:{size:10,family:'Sarabun'}}}},
+  onClick:cb?function(e,el){if(el[0])cb(lb[el[0].index])}:undefined}});
+}
+function mkD(id,lb,dt,cb){
+  var e=document.getElementById(id);if(!e)return;dC(e);
+  e._c=new Chart(e,{type:'doughnut',data:{labels:lb,datasets:[{data:dt,backgroundColor:CL,borderWidth:2,borderColor:'#fff',hoverOffset:6}]},
+  options:{responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{position:'bottom',labels:{font:{size:11,family:'Sarabun'},boxWidth:12,padding:8,usePointStyle:true}}},
+  onClick:cb?function(e,el){if(el[0])cb(lb[el[0].index])}:undefined}});
+}
+function mkG(id,lb,d1,d2,l1,l2,c1,c2,cb){
+  var e=document.getElementById(id);if(!e)return;dC(e);
+  e._c=new Chart(e,{type:'bar',data:{labels:lb,datasets:[
+    {label:l1,data:d1,backgroundColor:c1,borderRadius:4,borderWidth:0},
+    {label:l2,data:d2,backgroundColor:c2,borderRadius:4,borderWidth:0}]},
+  options:{responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{position:'top',labels:{font:{size:11,family:'Sarabun'},boxWidth:12,padding:8,usePointStyle:true}}},
+  scales:{x:{grid:{display:false},ticks:{font:{size:10,family:'Sarabun'}}},
+  y:{beginAtZero:true,grid:{color:'#F1F5F9'},ticks:{font:{size:10,family:'Sarabun'},stepSize:1}}},
+  onClick:cb?function(e,el){if(el[0])cb(lb[el[0].index],el[0].datasetIndex)}:undefined}});
+}
+
+// ── Page 1: Active ────────────────────────────────────────────
+var aF=null;
+function AF(k,v,l){aF={k:k,v:v,l:l};document.getElementById('a-fa').classList.remove('h');document.getElementById('a-fl').textContent=l;AR();}
+function AC(){aF=null;document.getElementById('a-fa').classList.add('h');AR();}
+function IA(){
+  document.getElementById('k-an').textContent=DA.length;
+  document.getElementById('k-am').textContent=DA.filter(function(r){return r.gender==='M';}).length;
+  document.getElementById('k-af').textContent=DA.filter(function(r){return r.gender==='F';}).length;
+  pS('a-f1',DA.map(function(r){return r.affiliation;}),'สังกัด');
+  pS('a-f2',DA.map(function(r){return r.dept;}),'แผนก');
+  var cm={};DA.forEach(function(r){var c=nC(r.channel);cm[c]=(cm[c]||0)+1;});
+  mkD('a-ch',Object.keys(cm),Object.values(cm),function(l){AF('channel',l,'ช่องทาง: '+l);});
+  var dm=cB(DA,'dept'),ds=Object.entries(dm).sort(function(a,b){return b[1]-a[1];});
+  mkBH('a-dp',ds.map(function(x){return x[0];}),ds.map(function(x){return x[1];}),function(l){AF('dept',l,'แผนก: '+l);});
+  // ── Turnover Rate รายเดือน ────────────────────────────────
+  // คำนวณจำนวนพนักงานต้นปี (ก่อนเดือนแรกที่มีข้อมูล)
+  // ใช้ logic: ต้นเดือนม.ค. = พนักงานปัจจุบัน + ลาออกทั้งปี - รับเข้าทั้งปี
+  var torRows=[];
+  var baseCount=DA.length+DR.length-DH.length; // ประมาณต้นปี
+  if(baseCount<0)baseCount=0;
+  var running=baseCount;
+  var torRates=[];
+  MN.forEach(function(m){
+    var hired=DH.filter(function(r){return r.month===m;}).length;
+    var left=DR.filter(function(r){return r.month===m;}).length;
+    var start=running;
+    var end=start+hired-left;
+    if(end<0)end=0;
+    var avg=(start+end)/2;
+    var rate=avg>0?Math.round(left/avg*1000)/10:0;
+    torRates.push(rate);
+    torRows.push({m:m,start:start,hired:hired,left:left,end:end,avg:Math.round(avg),rate:rate});
+    running=end;
+  });
+  // แสดงเฉพาะเดือนที่มีข้อมูล (hired หรือ left > 0) และไม่เกินเดือนปัจจุบัน
+  var curMonIdx=new Date().getMonth(); // 0=มกราคม, 1=กุมภาพันธ์, ...
+  var activeMons=torRows.filter(function(r){
+    var mIdx=MN.indexOf(r.m);
+    return (r.hired>0||r.left>0) && mIdx<=curMonIdx;
+  });
+  var ytdAvg=activeMons.length?Math.round(activeMons.reduce(function(s,r){return s+r.rate;},0)/activeMons.length*10)/10:0;
+  var maxRate=activeMons.length?Math.max.apply(null,activeMons.map(function(r){return r.rate;})):0;
+  document.getElementById('k-tor').textContent=ytdAvg+'%';
+  document.getElementById('k-tor-max').textContent=maxRate+'%';
+  // กราฟเส้น + แท่งซ้อน
+  var torEl=document.getElementById('a-tor');
+  if(torEl){dC(torEl);
+    var torLb=activeMons.map(function(r){return r.m;});
+    torEl._c=new Chart(torEl,{
+      data:{labels:torLb,datasets:[
+        {type:'bar',label:'รับเข้า',data:activeMons.map(function(r){return r.hired;}),backgroundColor:'#3B82F6',borderRadius:4,borderWidth:0,yAxisID:'y'},
+        {type:'bar',label:'ลาออก',data:activeMons.map(function(r){return r.left;}),backgroundColor:'#EF4444',borderRadius:4,borderWidth:0,yAxisID:'y'},
+        {type:'line',label:'Turnover %',data:activeMons.map(function(r){return r.rate;}),borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.1)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#7C3AED',tension:0.3,fill:true,yAxisID:'y2'}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'top',labels:{font:{size:11,family:'Sarabun'},boxWidth:12,padding:8,usePointStyle:true}}},
+        scales:{
+          x:{grid:{display:false},ticks:{font:{size:10,family:'Sarabun'}}},
+          y:{beginAtZero:true,position:'left',grid:{color:'#F1F5F9'},ticks:{font:{size:10,family:'Sarabun'},stepSize:1},title:{display:true,text:'คน',font:{size:10,family:'Sarabun'}}},
+          y2:{beginAtZero:true,position:'right',grid:{display:false},ticks:{font:{size:10,family:'Sarabun'},callback:function(v){return v+'%'}},title:{display:true,text:'%',font:{size:10,family:'Sarabun'}}}
+        }}});
+  }
+  // ตาราง
+  var tbRows=activeMons.map(function(r,i){
+    var rateColor=r.rate>=10?'#EF4444':r.rate>=5?'#F97316':'#10B981';
+    return'<tr style="background:'+(i%2?'#FAFAFA':'#fff')+';border-bottom:1px solid #F1F5F9">'+
+      '<td style="padding:6px 10px;font-weight:600">'+r.m+'</td>'+
+      '<td style="padding:6px 10px;text-align:center">'+r.start+'</td>'+
+      '<td style="padding:6px 10px;text-align:center;color:#3B82F6;font-weight:600">+'+r.hired+'</td>'+
+      '<td style="padding:6px 10px;text-align:center;color:#EF4444;font-weight:600">-'+r.left+'</td>'+
+      '<td style="padding:6px 10px;text-align:center">'+r.end+'</td>'+
+      '<td style="padding:6px 10px;text-align:center;color:#64748B">'+r.avg+'</td>'+
+      '<td style="padding:6px 10px;text-align:center;font-weight:700;color:'+rateColor+'">'+r.rate+'%</td>'+
+    '</tr>';
+  }).join('');
+  document.getElementById('a-tor-tb').innerHTML=tbRows||'<tr><td colspan="7" style="padding:20px;text-align:center;color:#94A3B8">ไม่มีข้อมูล</td></tr>';
+  AR();
+}
+function AR(){
+  var q=(document.getElementById('a-q').value||'').toLowerCase();
+  var f1=document.getElementById('a-f1').value,f2=document.getElementById('a-f2').value,
+      f3=document.getElementById('a-f3').value;
+  var d=DA.filter(function(r){
+    if(aF){
+      if(aF.k==='gender'&&r.gender!==aF.v)return false;
+      if(aF.k==='dept'&&r.dept!==aF.v)return false;
+      if(aF.k==='channel'&&nC(r.channel)!==aF.v)return false;
+    }
+    if(f1&&r.affiliation!==f1)return false;
+    if(f2&&r.dept!==f2)return false;
+    if(f3&&r.gender!==f3)return false;
+    if(q&&!(r.name+r.dept+r.position+r.id+r.affiliation).toLowerCase().includes(q))return false;
+    return true;
+  });
+  document.getElementById('a-dc').textContent=(aF?aF.l:'ทั้งหมด')+' '+d.length+' คน';
+  document.getElementById('a-tb').innerHTML=d.map(function(r,i){
+    return'<tr>'+
+      '<td style="color:#94A3B8;font-weight:600">'+(i+1)+'</td>'+
+      '<td style="font-family:monospace;font-size:11px">'+(r.id||'-')+'</td>'+
+      '<td><span class="bx" style="background:#DBEAFE;color:#1D4ED8">'+r.affiliation+'</span></td>'+
+      '<td>'+r.dept+'</td>'+
+      '<td style="font-weight:600">'+r.name+(r.nickname?' ('+r.nickname+')':'')+'</td>'+
+      '<td style="color:#475569;font-size:12px">'+r.position+'</td>'+
+      '<td style="text-align:center">'+r.level+'</td>'+
+      '<td style="text-align:center"><span class="bx" style="background:'+(r.gender==='M'?'#DBEAFE;color:#1D4ED8':'#FEE2E2;color:#B91C1C')+'">'+(r.gender==='M'?'ช':'ญ')+'</span></td>'+
+      '<td style="font-family:monospace;font-size:12px">'+dD(r.startDate)+'</td>'+
+      '</tr>';
+  }).join('')||'<tr><td colspan="9" style="text-align:center;padding:20px;color:#94A3B8">ไม่พบข้อมูล</td></tr>';
+}
+
+// ── Page 2: Hired ─────────────────────────────────────────────
+var hF=null;
+function HF(k,v,l,xs){hF={k:k,v:v,l:l,xs:xs};document.getElementById('h-fa').classList.remove('h');document.getElementById('h-fl').textContent=l;HR();}
+function HC(){hF=null;document.getElementById('h-fa').classList.add('h');HR();}
+function IH(){
+  var st=DH.filter(function(r){return r.status==='ทำงาน';}).length;
+  var lt=DH.filter(function(r){return r.status==='ลาออก';}).length;
+  document.getElementById('k-hn').textContent=DH.length;
+  document.getElementById('k-hs').textContent=st;
+  document.getElementById('k-hl').textContent=lt;
+  document.getElementById('k-hr').textContent=(DH.length?Math.round(st/DH.length*100):0)+'%';
+  document.getElementById('k-hm').textContent=DH.filter(function(r){return r.gender==='M';}).length;
+  document.getElementById('k-hf').textContent=DH.filter(function(r){return r.gender==='F';}).length;
+  pS('h-f1',DH.map(function(r){return r.affiliation;}),'สังกัด');
+  pS('h-f2',DH.map(function(r){return r.dept;}),'แผนก');
+  pS('h-f3',MN.filter(function(m){return DH.some(function(r){return r.month===m;});}),'เดือน');
+  var ml=MN.filter(function(m){return DH.some(function(r){return r.month===m;});});
+  // กราฟรับเข้าจริงรายเดือน (นับทุกคนที่เริ่มงานในเดือนนั้น)
+  var realData=ml.map(function(m){return DH.filter(function(r){return r.month===m;}).length;});
+  var realTotal=DH.length;
+  document.getElementById('k-hr2').textContent=realTotal+' คน';
+  var realEl=document.getElementById('h-real');
+  if(realEl){dC(realEl);
+    realEl._c=new Chart(realEl,{type:'bar',
+      data:{labels:ml,datasets:[{
+        label:'รับเข้า',
+        data:realData,
+        backgroundColor:'#10B981',
+        borderRadius:6,borderWidth:0
+      }]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},
+          tooltip:{callbacks:{label:function(ctx){return' '+ctx.raw+' คน';}}}},
+        scales:{
+          x:{grid:{display:false},ticks:{font:{size:11,family:'Sarabun'}}},
+          y:{beginAtZero:true,grid:{color:'#F1F5F9'},ticks:{font:{size:11,family:'Sarabun'},stepSize:1}}
+        }}});
+  }
+  mkG('h-mn',ml,
+    ml.map(function(m){return DH.filter(function(r){return r.month===m;}).length;}),
+    ml.map(function(m){return DH.filter(function(r){return r.month===m&&r.status==='ลาออก';}).length;}),
+    'รับเข้า','ลาออก','#3B82F6','#EF4444',
+    function(l,di){HF('month',l,'เดือน: '+l,di===1?'ลาออก':null);});
+  var dp=Array.from(new Set(DH.map(function(r){return r.dept;})));
+  mkG('h-dp',dp,
+    dp.map(function(d){return DH.filter(function(r){return r.dept===d&&r.status==='ทำงาน';}).length;}),
+    dp.map(function(d){return DH.filter(function(r){return r.dept===d&&r.status==='ลาออก';}).length;}),
+    'ทำงาน','ลาออก','#10B981','#EF4444',
+    function(l,di){HF('dept',l,'แผนก: '+l,di===1?'ลาออก':null);});
+  var cm={};DH.forEach(function(r){var c=nC(r.channel);cm[c]=(cm[c]||0)+1;});
+  mkD('h-ch',Object.keys(cm),Object.values(cm),function(l){HF('channel',l,'ช่องทาง: '+l,null);});
+  mkD('h-af',Object.keys(cB(DH,'affiliation')),Object.values(cB(DH,'affiliation')),function(l){HF('affiliation',l,'สังกัด: '+l,null);});
+  HR();
+}
+function HR(){
+  var q=(document.getElementById('h-q').value||'').toLowerCase();
+  var f1=document.getElementById('h-f1').value,f2=document.getElementById('h-f2').value,
+      f3=document.getElementById('h-f3').value,f4=document.getElementById('h-f4').value;
+  var d=DH.filter(function(r){
+    if(hF){
+      if(hF.k==='status'&&r.status!==hF.v)return false;
+      if(hF.k==='month'&&r.month!==hF.v)return false;
+      if(hF.k==='dept'&&r.dept!==hF.v)return false;
+      if(hF.k==='channel'&&nC(r.channel)!==hF.v)return false;
+      if(hF.k==='affiliation'&&r.affiliation!==hF.v)return false;
+      if(hF.xs&&r.status!==hF.xs)return false;
+    }
+    if(f1&&r.affiliation!==f1)return false;
+    if(f2&&r.dept!==f2)return false;
+    if(f3&&r.month!==f3)return false;
+    if(f4&&r.status!==f4)return false;
+    if(q&&!(r.name+r.dept+r.position+r.affiliation).toLowerCase().includes(q))return false;
+    return true;
+  });
+  document.getElementById('h-dc').textContent=(hF?hF.l:'ทั้งหมด')+' '+d.length+' คน';
+  document.getElementById('h-tb').innerHTML=d.map(function(r,i){
+    return'<tr>'+
+      '<td style="color:#94A3B8;font-weight:600">'+(i+1)+'</td>'+
+      '<td><span class="bx" style="background:#DBEAFE;color:#1D4ED8">'+r.affiliation+'</span></td>'+
+      '<td>'+r.dept+'</td>'+
+      '<td style="font-weight:600">'+r.name+(r.nickname?' ('+r.nickname+')':'')+'</td>'+
+      '<td style="color:#475569;font-size:12px">'+r.position+'</td>'+
+      '<td style="text-align:center">'+r.level+'</td>'+
+      '<td style="font-family:monospace;font-size:12px">'+dD(r.startDate)+'</td>'+
+      '<td><span class="bx" style="background:'+(r.status==='ทำงาน'?'#DCFCE7;color:#15803D':'#FEE2E2;color:#B91C1C')+'">'+r.status+'</span></td>'+
+      '<td style="font-family:monospace;font-size:12px;color:#EF4444">'+dD(r.resignDate)+'</td>'+
+      '<td style="font-size:12px;color:#475569">'+(r.tenure||'-')+'</td>'+
+      '</tr>';
+  }).join('')||'<tr><td colspan="10" style="text-align:center;padding:20px;color:#94A3B8">ไม่พบข้อมูล</td></tr>';
+}
+
+// ── Page 3: Resigned ──────────────────────────────────────────
+var rF=null;
+function RF(k,v,l){rF={k:k,v:v,l:l};document.getElementById('r-fa').classList.remove('h');document.getElementById('r-fl').textContent=l;RR();}
+function RC(){rF=null;document.getElementById('r-fa').classList.add('h');RR();}
+function IR(){
+  document.getElementById('k-rn').textContent=DR.length;
+  document.getElementById('k-rnp').textContent=DR.filter(function(r){return r.resignType==='ไม่ผ่านทดลองงาน';}).length;
+  document.getElementById('k-rbl').textContent=DR.filter(function(r){return r.blacklist==='BLACK LIST';}).length;
+  document.getElementById('k-rm').textContent=DR.filter(function(r){return r.gender==='M';}).length;
+  document.getElementById('k-rf').textContent=DR.filter(function(r){return r.gender==='F';}).length;
+  var rm=cB(DR.filter(function(r){return r.reason;}),'reason');
+  var top=Object.entries(rm).sort(function(a,b){return b[1]-a[1];})[0];
+  document.getElementById('k-rt').textContent=top?top[0]:'-';
+  pS('r-f1',DR.map(function(r){return r.affiliation;}),'สังกัด');
+  pS('r-f2',DR.map(function(r){return r.dept;}),'แผนก');
+  pS('r-f3',MN.filter(function(m){return DR.some(function(r){return r.month===m;});}),'เดือน');
+  pS('r-f4',DR.map(function(r){return r.resignType;}).filter(Boolean),'ประเภท');
+  var ml=MN.filter(function(m){return DR.some(function(r){return r.month===m;});});
+  mkG('r-mn',ml,
+    ml.map(function(m){return DR.filter(function(r){return r.month===m;}).length;}),
+    ml.map(function(m){return DR.filter(function(r){return r.month===m&&r.resignType==='ไม่ผ่านทดลองงาน';}).length;}),
+    'ลาออก','ไม่ผ่านทดลอง','#EF4444','#F59E0B',
+    function(l){RF('month',l,'เดือน: '+l);});
+  var rs=Object.entries(cB(DR.filter(function(r){return r.reason;}),'reason')).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
+  mkBH('r-rs',rs.map(function(x){return x[0];}),rs.map(function(x){return x[1];}),function(l){RF('reason',l,'สาเหตุ: '+l);});
+  var dt2=Object.entries(cB(DR,'dept')).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
+  mkB('r-dp',dt2.map(function(x){return x[0];}),dt2.map(function(x){return x[1];}),['#8B5CF6'],function(l){RF('dept',l,'แผนก: '+l);});
+  mkD('r-af',Object.keys(cB(DR,'affiliation')),Object.values(cB(DR,'affiliation')),function(l){RF('affiliation',l,'สังกัด: '+l);});
+  // ── กราฟอายุงาน ─────────────────────────────────────────────
+  var tnBands=[
+    {label:'0–4 เดือน',min:0,max:4/12,color:'#EF4444'},
+    {label:'5–12 เดือน',min:4/12,max:1,color:'#F97316'},
+    {label:'1–2 ปี',min:1,max:2,color:'#F59E0B'},
+    {label:'2–5 ปี',min:2,max:5,color:'#10B981'},
+    {label:'5–10 ปี',min:5,max:10,color:'#3B82F6'}
+  ];
+  function parseTenureYears(t){
+    if(!t)return null;
+    var s=t.toString().trim();
+    // รูปแบบ: "X ปี Y เดือน Z วัน" หรือ "X ปี" หรือ "Y เดือน" หรือ "Z วัน"
+    var yrs=0,mos=0,days=0;
+    var my=s.match(/(\d+)\s*ปี/);if(my)yrs=parseInt(my[1]);
+    var mm=s.match(/(\d+)\s*เดือน/);if(mm)mos=parseInt(mm[1]);
+    var md=s.match(/(\d+)\s*วัน/);if(md)days=parseInt(md[1]);
+    if(yrs===0&&mos===0&&days===0){
+      // ลองแบบตัวเลขล้วน (ปีทศนิยม)
+      var n=parseFloat(s);if(!isNaN(n))return n;
+      return null;
+    }
+    return yrs+(mos/12)+(days/365);
+  }
+  var tnCounts=tnBands.map(function(){return 0;});
+  DR.forEach(function(r){
+    var yr=parseTenureYears(r.tenure);
+    if(yr===null)return;
+    for(var i=0;i<tnBands.length;i++){
+      if(yr>=tnBands[i].min&&yr<tnBands[i].max){tnCounts[i]++;break;}
+    }
+  });
+  var tnTotal=tnCounts.reduce(function(a,b){return a+b;},0);
+  // วาดกราฟแท่งแนวนอน
+  var tnEl=document.getElementById('r-tn');
+  if(tnEl){dC(tnEl);
+    tnEl._c=new Chart(tnEl,{type:'bar',
+      data:{labels:tnBands.map(function(b){return b.label;}),
+        datasets:[{data:tnCounts,backgroundColor:tnBands.map(function(b){return b.color;}),borderRadius:6,borderWidth:0}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){
+          var pct=tnTotal?Math.round(ctx.raw/tnTotal*100):0;
+          return ' '+ctx.raw+' คน ('+pct+'%)';
+        }}}},
+        scales:{x:{beginAtZero:true,grid:{color:'#F1F5F9'},ticks:{font:{size:11,family:'Sarabun'},stepSize:1}},
+          y:{grid:{display:false},ticks:{font:{size:12,family:'Sarabun'}}}}}});
+  }
+  // legend สรุปข้างกราฟ
+  var lgEl=document.getElementById('r-tn-legend');
+  if(lgEl){
+    lgEl.innerHTML=tnBands.map(function(b,i){
+      var pct=tnTotal?Math.round(tnCounts[i]/tnTotal*100):0;
+      return'<div style="display:flex;align-items:center;gap:10px;background:#F8FAFC;border-radius:10px;padding:8px 12px">'+
+        '<div style="width:14px;height:14px;border-radius:4px;background:'+b.color+';flex-shrink:0"></div>'+
+        '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#1E293B">'+b.label+'</div>'+
+        '<div style="font-size:11px;color:#64748B">'+tnCounts[i]+' คน</div></div>'+
+        '<div style="font-size:16px;font-weight:700;color:'+b.color+'">'+pct+'%</div>'+
+      '</div>';
+    }).join('');
+  }
+  var rows='';
+  ml.forEach(function(m,i){
+    var t=DR.filter(function(r){return r.month===m;}).length;
+    var np=DR.filter(function(r){return r.month===m&&r.resignType==='ไม่ผ่านทดลองงาน';}).length;
+    rows+='<tr style="background:'+(i%2?'#FAFAFA':'#fff')+';border-bottom:1px solid #F1F5F9">'+
+      '<td style="padding:6px 8px;font-weight:600">'+m+'</td>'+
+      '<td style="padding:6px 8px;text-align:center;color:#EF4444;font-weight:700">'+t+'</td>'+
+      '<td style="padding:6px 8px;text-align:center;color:#B45309;font-weight:700">'+np+'</td>'+
+      '<td style="padding:6px 8px;text-align:center;color:#64748B">'+(t?Math.round(np/t*100):0)+'%</td></tr>';
+  });
+  document.getElementById('r-st').innerHTML=rows||
+    (DR.length?'<tr><td colspan="4" style="padding:7px 8px;font-weight:700;background:#FEF2F2;text-align:center">รวม '+DR.length+' คน</td></tr>':
+    '<tr><td colspan="4" style="padding:20px;text-align:center;color:#94A3B8">ไม่มีข้อมูลลาออก</td></tr>');
+  RR();
+}
+function RR(){
+  var q=(document.getElementById('r-q').value||'').toLowerCase();
+  var f1=document.getElementById('r-f1').value,f2=document.getElementById('r-f2').value,
+      f3=document.getElementById('r-f3').value,f4=document.getElementById('r-f4').value,
+      f5=document.getElementById('r-f5').value;
+  var d=DR.filter(function(r){
+    if(rF){
+      if(rF.k==='np'&&r.resignType!=='ไม่ผ่านทดลองงาน')return false;
+      if(rF.k==='bl'&&r.blacklist!=='BLACK LIST')return false;
+      if(rF.k==='month'&&r.month!==rF.v)return false;
+      if(rF.k==='dept'&&r.dept!==rF.v)return false;
+      if(rF.k==='reason'&&r.reason!==rF.v)return false;
+      if(rF.k==='affiliation'&&r.affiliation!==rF.v)return false;
+    }
+    if(f1&&r.affiliation!==f1)return false;
+    if(f2&&r.dept!==f2)return false;
+    if(f3&&r.month!==f3)return false;
+    if(f4&&r.resignType!==f4)return false;
+    if(f5==='BL'&&r.blacklist!=='BLACK LIST')return false;
+    if(f5==='N'&&r.blacklist==='BLACK LIST')return false;
+    if(q&&!(r.name+r.dept+r.position+r.reason+r.affiliation).toLowerCase().includes(q))return false;
+    return true;
+  });
+  document.getElementById('r-dc').textContent=(rF?rF.l:'ทั้งหมด')+' '+d.length+' คน';
+  document.getElementById('r-tb').innerHTML=d.map(function(r,i){
+    var isNP=r.resignType==='ไม่ผ่านทดลองงาน';
+    var rtBg=r.resignType==='ลาออกผิดระเบียบ'?'#FEE2E2;color:#B91C1C':isNP?'#FEF3C7;color:#B45309':'#F1F5F9;color:#475569';
+    return'<tr style="background:'+(isNP?'#FFFBEB':i%2===0?'#fff':'#FAFAFA')+'">'+
+      '<td style="color:#94A3B8;font-weight:600">'+(i+1)+'</td>'+
+      '<td><span class="bx" style="background:#DBEAFE;color:#1D4ED8">'+r.affiliation+'</span></td>'+
+      '<td>'+r.dept+'</td>'+
+      '<td style="font-weight:600">'+r.name+(r.nickname?' ('+r.nickname+')':'')+'</td>'+
+      '<td style="color:#475569;font-size:12px">'+r.position+'</td>'+
+      '<td style="font-family:monospace;font-size:12px">'+dD(r.startDate)+'</td>'+
+      '<td style="font-family:monospace;font-size:12px;color:#EF4444;font-weight:600">'+dD(r.resignDate)+'</td>'+
+      '<td style="font-size:12px;color:#475569">'+(r.tenure||'-')+'</td>'+
+      '<td><span class="bx" style="font-size:10px;background:'+rtBg+'">'+(r.resignType||'-')+'</span></td>'+
+      '<td style="font-size:12px;color:#475569;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(r.reason||'')+'">'+(r.reason||'-')+'</td>'+
+      '<td style="text-align:center">'+(r.blacklist==='BLACK LIST'?'<span class="bx" style="background:#1E293B;color:#F8FAFC">BL</span>':'-')+'</td>'+
+      '</tr>';
+  }).join('')||'<tr><td colspan="11" style="text-align:center;padding:20px;color:#94A3B8">ไม่พบข้อมูล</td></tr>';
+}
+
+// ── Page 4: Transfer ──────────────────────────────────────────
+function IT(){
+  document.getElementById('tc').innerHTML=DT.map(function(t,i){
+    var isUp=Number(t.newLevel)>Number(t.oldLevel);
+    return'<div style="background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;margin-bottom:12px">'+
+      '<div style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:10px 16px;display:flex;align-items:center;gap:10px">'+
+        '<div style="width:30px;height:30px;border-radius:50%;background:#EDE9FE;display:flex;align-items:center;justify-content:center;font-weight:700;color:#7C3AED;font-size:13px;flex-shrink:0">'+(i+1)+'</div>'+
+        '<div><div style="font-weight:700;font-size:14px">'+t.name+(t.nickname?' ('+t.nickname+')':'')+'</div>'+
+        '<div style="font-size:12px;color:#64748B">สังกัด '+t.affiliation+' | แผนก '+t.dept+' | ปรับ: '+dD(t.adjustDate)+'</div></div>'+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr">'+
+        '<div style="padding:14px 16px;border-right:1px solid #E2E8F0;background:#EFF6FF">'+
+          '<div style="font-size:11px;font-weight:700;color:#1D4ED8;margin-bottom:8px">🔵 ตำแหน่งเดิม</div>'+
+          '<div style="font-size:14px;font-weight:600;margin-bottom:6px">'+t.oldPosition+'</div>'+
+          '<div style="display:flex;gap:5px;flex-wrap:wrap">'+
+            '<span class="bx" style="background:#DBEAFE;color:#1D4ED8">'+(t.oldId||'-')+'</span>'+
+            '<span class="bx" style="background:#F1F5F9;color:#475569">Lv '+t.oldLevel+'</span>'+
+            '<span class="bx" style="background:#F1F5F9;color:#475569">'+dD(t.oldStart)+'</span>'+
+          '</div>'+
+        '</div>'+
+        '<div style="padding:14px 16px;background:#F0FDF4">'+
+          '<div style="font-size:11px;font-weight:700;color:#15803D;margin-bottom:8px">🟢 ตำแหน่งใหม่</div>'+
+          '<div style="font-size:14px;font-weight:700;color:#15803D;margin-bottom:6px">'+t.newPosition+(isUp?' ⬆':'')+'</div>'+
+          '<div style="display:flex;gap:5px;flex-wrap:wrap">'+
+            '<span class="bx" style="background:#DCFCE7;color:#15803D">'+(t.newId||'-')+'</span>'+
+            '<span class="bx" style="background:#DCFCE7;color:#15803D">Lv '+t.newLevel+'</span>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('')||'<div style="text-align:center;padding:40px;color:#94A3B8">ไม่มีข้อมูลโยกย้าย</div>';
+}
+
+window.onload=loadData;
+</script>
+</body>
+</html>
